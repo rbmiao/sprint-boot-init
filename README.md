@@ -10,10 +10,11 @@
 ## Alternatives
 - `http://localhost:8080/lazy` - Uses `LazyController` and `LazyService` which can be marked manually as `@Lazy` for specific Beans
 
-## echo "# sprint-boot-init" >> README.md
-## git init
-## git add README.md
-## git commit -m "first commit"
-## git branch -M master
-## git remote add origin https://github.com/rbmiao/sprint-boot-init.git
-## git push -u origin master
+## Creating a repo on github.com
+echo "# sprint-boot-init" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M master
+git remote add origin https://github.com/rbmiao/sprint-boot-init.git
+git push -u origin master
