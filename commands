@@ -1,0 +1,131 @@
+### 
+### Deploying Spring Boot in Kubernetes | Google Kubernetes Engine
+###
+### This video covers how to deploy a Spring boot application into Google Kubernetes 
+### Cluster in the Google Cloud Platform using Google Container Registry
+###
+### We  
+### 1, create spring boot application, 
+### 2, wrap that particular spring boot application into a docker image, 
+### 3, upload the docker image into container registry in google, 
+### 4, kubernetes downloads these images once deploying them into kubernetes, 
+### 5, docker image get deployed as pods - this is called deployment, 
+### 6, in order to expose or send trafficto these deployments we create services, 
+### 7, once service is created it acts as a load balancer across these parts, 
+### 8, then scale these applications into three instances, 
+### 9, automatically service we was able to redirect to different instances.  
+###
+### https://www.youtube.com/watch?v=jSYxW_c3M_E
+### 
+
+git clone https://github.com/rbmiao/sprint-boot-init.git
+ls
+cd spring-boot-lazy-init-example/
+ls
+mvnw mvnw.cmd pom.xml README.md src
+./mvnw clean install
+---
+BUILD SUCCESS
+---
+ls   ### create a target directory
+cd target    ## create a spring-boot-lazy-init-0.0.1-snapshot.jar
+###  Bring up spring server.
+java -jar spring-boot-lazy-i nit-0.0.1-sansphot.jar   
+### Trying to connect to this spring boot server
+### What's happening is this particular terminal is running inside something called 
+### Google compute engine. So Google creates a compute engine on the fly when I clicked
+### on the activate cloud shell. It creates a whole machine. So in case AWS we have 
+### something called an EC2 instance. Google is doing similar thing that provides a space
+### for us. My spring boot is running.
+### 
+### On the cloud shell terminal sub-window, top-right, this is a web-review button.  Click on that.
+### A new firefox tab is opening,  you can something on the window.
+### Change the URL with last part to /lazy.  You can see the output of my Java code!
+###
+### Stopping spring server: return to cloud terminal shell, ctrl-c stop running server.
+###
+### Google compute engine is basically a machine a lightweight machine which is assigned to us on the fly.
+### You can use compute engine to deploy our application then hosted on google cloud.
+###
+### How to deploy this application into the kubernetes cluster?
+### We already created spring boot application now, we need to convert spring boot application into
+### a docker image.  Speaking of that, go back to cloud shell terminal, using the maven wrapper.
+### We can provide Google clouds plug-in called gem maven plug-in which will try to create this image and
+### this Jib plug-in will also upload the image to google docker container registery.
+### This docker container registery can be externally or internally hosted inside your company.
+### In this case, it is hosted in google.
+cd ..
+./mvnw com.google.cloud.tools:jib-maven-plugin:build -Dimage=gcr.io/$GOOGLE_CLOUD_PROJECT/spring-boot-miao:v1
+
+### Above command is going to build whole project and create a docker image spring-boot-miao version 1 out of project.
+### When kubernetes needs a docker image, it can take them from docker registry whenever it requests .
+### After above command runs successfully, login to cloud.google.com, navigate from main menu to "Container Registry", 
+### you will see new docker images on right panel, click it to check the version number.
+###
+### Now we need push docker image into one of PODs -- basically we are going to create a deployment. 
+### In order to make deployment, go back to cloud shell terminal in web browser, use glcoud API 
+### Login to that particular cluster so we are connected into the kubernetes cluster. We got k8s cluster auth data and 
+### kubeconfig entry generated for the particular cluster. 
+gcloud container clusters get-credentials <k8s-cluster-id> --zone <project-zone-name>
+gcloud container clusters get-credentials daniel-k8s-cluster-1 --zone us-east1-b
+(output shows kubeconfig entry has been generated.)
+###
+### Now we are in kubernetes cluster instance created by Google. We can use kubectl to get anything related 
+### to k8s like pods, services, deployment, etc.  (Following is still in cloud shell terminal in web browser)
+kubectl get pods
+kubectl get services
+kubectl get deployment
+docker run -it --rem -p 8080:8080 gcr.io/$GOOGLE_CLOUD_PROJECT/spring-boot-example:v1
+### Create a docker container from previous created docker image
+### Using web-viewer from cloud-shell terminal to check whether docker is running.
+### The web-viewer convert our url from terminal and see output from our application
+### This proves that docker container is running inside of a kubernetes pod. 
+### We are sure that docker image which gcloud created is pretty good now!
+###
+### But how do I deploy my docker image into a kubernetes' cluster ??
+### Again we use kubectl to do that. Exposed port needs to be provided.
+kubectl run spring-boot-example --image=gcr.io/$GOOGLE_CLOUD_PROJECT/spring-boot-exmaple:v1 --port=8080
+(deployment.apps/spring-boot-example created)
+### Deployment is running.  How to verify ?
+kubectl get deployments
+### 
+### Also we can check pods, services, etc.
+kubectl get pods
+kubectl get services
+(we should not get any other service except kubernetes service -- because no service has been created yet)
+### 
+### For us now, we CANNOT login to the deployment. Thus we create something called as a load balancer in 
+### order to connect to that particular instance. We create DNS and load balancer to call service. DNS route
+### the traffic onto the particular deployed google instance. 
+### People usually create a yaml file for creating this service. Here is just use kubectl directly.
+### In order to expose deployment to a load balancer, use kubectl expose
+kubectl expose deployment spring-boot-example --type=LoadBalancer
+(service/sprint-boot-example exposed)
+### Above return basically means now getting service should return something extra. It takes a couple of minutes. 
+kubectl get services
+(...
+spring-boot-example 	LoadBalancer 	10.47.252.110	<94.23.43.122> 	8080:32012/TCP	11s
+)
+### <94.23.43.122> is an external IP. kubernetes creates this external IP address which exposed and accessed to us 
+### This return means we can navigate to 94.23.43.122 to see our application.
+### Open a new browser window, put the address and port number  94.23.43.122:8080 and return. Ta Da.. Spring boot
+### applicaiton comes. Use 94.23.43.122:8080/lazy instead -- this application directs.
+###
+### We are using external IP as address.  This external IP can be added to DNS record CName then we can use CName 
+### to access our application directly. 
+###
+### Within workload becoming heavier, it needs to scale up pods/deployments. When instances go down load balancer spins 
+### new instances to replace them. Load balancer knows that there are two more pods for the same application or
+### deployment and it figures out and redirects to different instances. 
+kubectl get deployments
+kubectl scale deployment spring-boot-example --replicas=3
+(deployment.extensions/spring-boot-example scaled)
+kubectl get pods
+(total 3 pods are displayed)
+kubectl get deployment
+(Desired 3 deployments are showing 7 minutes)
+###
+### After scaling up, go back to browser to double-check whether application still gets accessed.
+### 
+
+
