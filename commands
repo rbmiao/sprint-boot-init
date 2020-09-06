@@ -17,7 +17,7 @@
 ###
 ### https://www.youtube.com/watch?v=jSYxW_c3M_E
 ### 
-
+```
 git clone https://github.com/rbmiao/sprint-boot-init.git
 ls
 cd spring-boot-lazy-init-example/
@@ -29,6 +29,7 @@ BUILD SUCCESS
 ---
 ls   ### create a target directory
 cd target    ## create a spring-boot-lazy-init-0.0.1-snapshot.jar
+```
 ###  Bring up spring server.
 java -jar spring-boot-lazy-i nit-0.0.1-sansphot.jar   
 ### Trying to connect to this spring boot server
